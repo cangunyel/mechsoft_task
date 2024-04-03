@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Meeting Scheduler</title>
+	
+    <link rel="stylesheet" href="static/styles/client.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>Meeting Scheduler</h1>
+
+        <button onclick="openModal()">Add New Meeting</button>
+
+        <div id="meetings">
+            <!-- Display existing meetings here -->
+            {% for meeting in meetings %}
+            <div class="meeting" id="{{ meeting.topic }}">
+                <h3 id="topic">{{ meeting.topic }}</h3>
+                <p id="date"><strong>Date:</strong> {{ meeting.date }}</p>
+                <p id="startTime"><strong>Start Time:</strong> {{ meeting.startTime }} </p>
+                <p id="endTime"><strong>End Time:</strong> {{ meeting.endTime }}</p>
+                <p id="participants"><strong>Participants:</strong> {{ meeting.participants }}</p>
+                <button onclick="deleteMeeting('{{ meeting.topic }}')">Delete</button>
+                <button onclick="openUpdateModal('{{ meeting.topic }}')">Update</button>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Modal for adding new meeting -->
+        <div id="myModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal()">&times;</span>
+                <h2>Add New Meeting</h2>
+                <form onsubmit="addMeeting(); return false;">
+                    <label for="topic">Topic:</label>
+                    <input type="text" id="a_topic" required>
+                    <br>
+                    <label for="date">Date:</label>
+                    <input type="date" id="a_date" required>
+                    <br>
+                    <label for="startTime">Start Time:</label>
+                    <input type="time" id="a_startTime" required>
+                    <br>
+                    <label for="endTime">End Time:</label>
+                    <input type="time" id="a_endTime" required>
+                    <br>
+                    <button type="button" onclick="openModal2()">Add Participants</button>
+                    <button type="submit">Add Meeting</button>
+                </form>
+                <textarea id="participantsTextArea" class="participants" placeholder="Selected participants will appear here" readonly></textarea>
+            </div>
+        </div>
+        <!-- Modal for updating new meeting -->
+        <div id="updateModal" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeUpdateModal()">&times;</span>
+                <h2>Update Meeting</h2>
+                <form id="updateMeetingForm" onsubmit="updateMeeting(); return false;">
+                    <label for="updateTopic">Topic:</label>
+                    <input type="text" id="updateTopic" required>
+                    <br>
+                    <label for="updateDate">Date:</label>
+                    <input type="date" id="updateDate" required>
+                    <br>
+                    <label for="updateStartTime">Start Time:</label>
+                    <input type="time" id="updateStartTime" required>
+                    <br>
+                    <label for="updateEndTime">End Time:</label>
+                    <input type="time" id="updateEndTime" required>
+                    <br>
+                    <button type="button" onclick="openModal2ForUpdate()">Change Participants</button>
+                    <button type="submit">Update Meeting</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal for adding participants -->
+        <div id="myModal2" class="modal">
+            <div class="modal-content">
+                <span class="close" onclick="closeModal2()">&times;</span>
+                <h2>Add Participants</h2>
+                <form onsubmit="return false;">
+                    <input type="checkbox" id="emp1" value="Can Günyel">Can Günyel
+                    <br>
+                    <input type="checkbox" id="emp2" value="May Bell">May Bell
+                    <br>
+                    <input type="checkbox" id="emp3" value="Aimee Conner">Aimee Conner
+                    <br>
+                    <input type="checkbox" id="emp4" value="Debora Beard">Debora Beard
+                    <br>
+                    <button type="submit "onclick="addParticipants()">Change Participants</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        var modal = document.getElementById("myModal");
+        var modal2 = document.getElementById("myModal2");
+        var updateModal = document.getElementById("updateModal");
+        var participantsTextArea = document.getElementById("participantsTextArea");
+    
+        // Function to open modal for adding new meeting
+        function openModal() {
+            modal.style.display = "block";
+        }
+    
+        // Function to open modal for adding participants
+        function openModal2() {
+            modal2.style.display = "block";
+        }
+    
+        // Function to open modal for updating meeting
+        function openUpdateModal(topic) {
+            updateModal.style.display = "block";
+            // Retrieve meeting data by topic
+            var meetingDiv = document.getElementById(topic);
+            // Selecting the elements in modal
+            var topicElement = meetingDiv.querySelector('h3'); 
+            var dateElement = meetingDiv.querySelector('p:nth-of-type(1)'); 
+            var startTime = meetingDiv.querySelector('p:nth-of-type(2)'); 
+            var endTime = meetingDiv.querySelector('#endTime');
+            var startTime = meetingDiv.querySelector('#startTime'); 
+            var participantsElement = meetingDiv.querySelector('#participants');
+            var participantsExist = participantsElement.textContent.trim() !== "Participants: ['']";
+    
+            // Populate the form fields with the retrieved data
+            document.getElementById('updateTopic').value = topicElement.textContent;
+            document.getElementById('updateDate').value = dateElement.textContent.replace('Date: ', '');
+            document.getElementById('updateStartTime').value = startTime.textContent.replace('Start Time: ', '');
+            document.getElementById('updateEndTime').value = endTime.textContent.replace('End Time: ', '');
+            document.getElementById('updateStartTime').value = endTime.textContent.replace('Start Time: ', '');
+          
+            document.getElementById('updateMeetingForm').onsubmit = function() {
+                updateMeeting(topic);
+                return false;
+            };
+        }
+    
+        // Function to update meeting details
+        function updateMeeting(ex_topic) {
+            var topic = document.getElementById('updateTopic').value;
+            var date = document.getElementById('updateDate').value;
+            var startTime = document.getElementById('updateStartTime').value;
+            var endTime = document.getElementById('updateEndTime').value;
+            var participants = participantsTextArea.value.split(',').map(p => p.trim()); 
+    
+            var meetingData = {
+                "operation":2,
+                "ex_topic": ex_topic,
+                "topic": topic,
+                "date": date,
+                "startTime": startTime,
+                "endTime": endTime,
+                "participants": participants
+            };
+    
+            fetch('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(meetingData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Meeting updated successfully');
+					window.location.href = '/';
+
+                    closeModal();
+                    // Reset form fields or perform any other actions
+                } else {
+                    console.error('Failed to update meeting');
+                    closeModal();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    
+        // Function to close the modal for adding new meeting
+        function closeModal() {
+            modal.style.display = "none";
+        }
+    
+        // Function to close the modal for adding participants
+        function closeModal2() {
+            modal2.style.display = "none";
+        }
+    
+        // Function to close the modal for updating meeting
+        function closeUpdateModal() {
+            updateModal.style.display = "none";
+        }
+    
+        // Function to handle clicks outside the modals
+        window.onclick = function(event) {
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+            if (event.target == modal2) {
+                modal2.style.display = "none";
+            }
+            if (event.target == updateModal) {
+                updateModal.style.display = "none";
+            }
+        }
+    
+        // Function to add a new meeting
+        function addMeeting() {
+            var topic = document.getElementById('a_topic').value;
+            var date = document.getElementById('a_date').value;
+            var startTime = document.getElementById('a_startTime').value;
+            var endTime = document.getElementById('a_endTime').value;
+            var participants = participantsTextArea.value.split(',').map(p => p.trim()); 
+    
+            var meetingData = {
+                "operation":1,
+                "topic": topic,
+                "date": date,
+                "startTime": startTime,
+                "endTime": endTime,
+                "participants": participants
+            };
+    
+            fetch('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(meetingData)
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Meeting added successfully');
+                    closeModal();
+					window.location.href = '/';
+                    // Reset form fields or perform any other actions
+                } else {
+                    console.error('Failed to add meeting');
+                    closeModal();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+			setTimeout(1000)
+        }
+    
+        // Function to add participants to a meeting
+        function addParticipants() {
+            var selectedParticipants = [];
+            var checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            checkboxes.forEach(function(checkbox) {
+                selectedParticipants.push(checkbox.value);
+            });
+            participantsTextArea.value = selectedParticipants.join(', ');
+            closeModal2();
+        }
+    
+        // Function to delete a meeting
+        function deleteMeeting(topic) {
+            var meetingData = {
+                "operation":3,
+                "topic": topic
+                
+            };
+    
+            fetch('/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(meetingData)
+            })
+            .then(response => {
+                if (response.ok) {
+					window.location.href = '/';
+                    console.log('Meeting deleted successfully');
+                    closeModal();
+                    // Reset form fields or perform any other actions
+                } else {
+                    console.error('Failed to delete meeting');
+                    closeModal();
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+			console.log("asd")
+        }
+    
+        // Function to open modal for adding participants to an updated meeting
+        function openModal2ForUpdate() {
+            modal2.style.display = "block";
+        }
+    
+        // Function to add participants to an updated meeting
+        function addParticipantsToUpdate() {
+            var selectedParticipants = [];
+            var checkboxes = document.querySelectorAll('#myModal2 input[type="checkbox"]:checked');
+            checkboxes.forEach(function(checkbox) {
+                selectedParticipants.push(checkbox.value);
+            });
+            var participantsTextAreaUpdate = document.getElementById("participantsTextAreaUpdate");
+            participantsTextAreaUpdate.value = selectedParticipants.join(', ');
+            closeModal2();
+        }
+    </script>
+</body>
+
+</html>

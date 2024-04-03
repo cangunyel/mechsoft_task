@@ -1,0 +1,1 @@
+{"operation": 1, "topic": "Mechsoft Mülakat", "date": "2024-04-07", "startTime": "13:57", "endTime": "17:58", "participants": ["Can Günyel", "May Bell"]}
